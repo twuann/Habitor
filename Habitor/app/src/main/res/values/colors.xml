@@ -1,0 +1,8 @@
+<resources>
+    <color name="primary">#7ACBEE</color>
+    <color name="primary_dark">#5FB8E2</color>
+    <color name="accent">#EAF7FB</color>
+    <color name="text_primary">#333333</color>
+    <color name="text_secondary">#555555</color>
+    <color name="white">#FFFFFF</color>
+</resources>

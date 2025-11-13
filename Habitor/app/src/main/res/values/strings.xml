@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Habitor</string>
+    <string name="welcome">Welcome to Habitor 👋</string>
+    <string name="home">Home</string>
+    <string name="profile">Profile</string>
+    <string name="search">Search</string>
+    <string name="trash">Trash</string>
+    <string name="calendar">Calendar</string>
+    <string name="notif">Notifications</string>
+    <string name="title_notification_settings">Notification Settings</string>
+    <string name="label_enable_reminder">Enable Daily Reminder</string>
+</resources>
