@@ -7,7 +7,26 @@
         <!-- Transparent status bar -->
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">true</item>
+        
+        <!-- Bottom Navigation Bar styling -->
+        <item name="bottomNavigationStyle">@style/Widget.Habitor.BottomNavigationView</item>
     </style>
 
     <style name="Theme.Habitor" parent="Base.Theme.Habitor" />
+    
+    <!-- Bottom Navigation View Style - Material Design 3 -->
+    <style name="Widget.Habitor.BottomNavigationView" parent="Widget.Material3.BottomNavigationView">
+        <item name="android:background">@color/bottom_nav_background</item>
+        <item name="itemIconTint">@color/bottom_nav_item_color</item>
+        <item name="itemTextColor">@color/bottom_nav_item_color</item>
+        <item name="itemActiveIndicatorStyle">@style/Widget.Habitor.BottomNavigationView.ActiveIndicator</item>
+        <item name="labelVisibilityMode">labeled</item>
+        <item name="itemPaddingTop">8dp</item>
+        <item name="itemPaddingBottom">8dp</item>
+    </style>
+    
+    <!-- Active Indicator Style with 200ms animation -->
+    <style name="Widget.Habitor.BottomNavigationView.ActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@color/bottom_nav_indicator</item>
+    </style>
 </resources>

@@ -126,6 +126,24 @@ public class AuthFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Hide bottom navigation when viewing auth screen
+        if (getActivity() instanceof com.example.habitor.activities.MainActivity) {
+            ((com.example.habitor.activities.MainActivity) getActivity()).hideBottomNavigation();
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        // Show bottom navigation when leaving auth screen
+        if (getActivity() instanceof com.example.habitor.activities.MainActivity) {
+            ((com.example.habitor.activities.MainActivity) getActivity()).showBottomNavigation();
+        }
+    }
+
     private void initViews(View view) {
         tvTitle = view.findViewById(R.id.tvTitle);
         tvSubtitle = view.findViewById(R.id.tvSubtitle);

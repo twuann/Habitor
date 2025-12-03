@@ -605,7 +605,20 @@ public class HabitDetailFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        // Hide bottom navigation when viewing detail
+        if (getActivity() instanceof com.example.habitor.activities.MainActivity) {
+            ((com.example.habitor.activities.MainActivity) getActivity()).hideBottomNavigation();
+        }
         // Refresh data when returning to this fragment
         loadHabitData();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        // Show bottom navigation when leaving detail
+        if (getActivity() instanceof com.example.habitor.activities.MainActivity) {
+            ((com.example.habitor.activities.MainActivity) getActivity()).showBottomNavigation();
+        }
     }
 }

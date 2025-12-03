@@ -23,4 +23,10 @@
     <color name="completed_green">#4CAF50</color>
     <color name="progress_background">#E0E0E0</color>
     <color name="celebration_gold">#FFD700</color>
+    
+    <!-- Bottom Navigation Colors (Light Theme) -->
+    <color name="bottom_nav_background">#FFFFFF</color>
+    <color name="bottom_nav_selected">#7ACBEE</color>
+    <color name="bottom_nav_unselected">#757575</color>
+    <color name="bottom_nav_indicator">#E3F5FC</color>
 </resources>

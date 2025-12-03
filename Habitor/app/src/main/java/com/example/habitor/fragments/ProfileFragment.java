@@ -1,155 +1,245 @@
 package com.example.habitor.fragments;
 
-import android.app.Activity;
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.*;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 
 import com.example.habitor.R;
 import com.example.habitor.activities.MainActivity;
+import com.example.habitor.utils.AuthManager;
 import com.example.habitor.utils.PreferenceHelper;
 
-import java.io.IOException;
-
 /**
- * @deprecated This fragment has been replaced by {@link SettingsFragment} which provides
- * a unified settings experience combining Account, Profile, and Notification settings.
- * This class is kept for reference only and should not be used in new code.
+ * ProfileFragment displays user information and provides access to Settings.
+ * Shows different UI based on authentication state:
+ * - Signed in: displays user email, profile image, and Settings option
+ * - Not signed in: displays sign-in prompt and Settings option
  * 
- * <p>Migration: Use {@link SettingsFragment} instead, which includes all profile
- * editing functionality in the Profile section.</p>
- * 
- * @see SettingsFragment
- * @see <a href=".kiro/specs/drawer-auth-sync/requirements.md">Requirements 4.2</a>
+ * Requirements: 4.1, 4.2, 4.3, 4.4
  */
-@Deprecated
-public class ProfileFragment extends Fragment {
+public class ProfileFragment extends Fragment implements AuthManager.AuthStateListener {
 
-    private ImageView imgProfilePic;
-    private EditText edtName, edtAge;
-    private RadioGroup genderGroup;
-    private Button btnSave, btnChangePic;
-    private Uri imageUri;
+    // User info section views
+    private LinearLayout layoutUserInfo;
+    private ImageView imgUserAvatar;
+    private TextView tvUserName;
+    private TextView tvUserEmail;
+    private CardView cardSettings;
 
-    // ================================
-    // ACTIVITY RESULT API (NEW)
-    // ================================
-    private ActivityResultLauncher<Intent> pickImageLauncher =
-            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+    // Sign-in prompt section views
+    private LinearLayout layoutSignInPrompt;
+    private Button btnSignIn;
+    private CardView cardSettingsNotSignedIn;
 
-                    imageUri = result.getData().getData();
+    // Managers
+    private AuthManager authManager;
 
-                    try {
-                        Bitmap bitmap = MediaStore.Images.Media.getBitmap(
-                                requireActivity().getContentResolver(), imageUri);
+    public ProfileFragment() {
+        // Required empty public constructor
+    }
 
-                        imgProfilePic.setImageBitmap(bitmap);
+    /**
+     * Factory method to create a new instance of ProfileFragment.
+     * 
+     * @return A new instance of ProfileFragment
+     */
+    public static ProfileFragment newInstance() {
+        return new ProfileFragment();
+    }
 
-                        // Save immediately
-                        PreferenceHelper.saveUserImage(requireContext(), imageUri.toString());
-
-                        // Update drawer header instantly
-                        ((MainActivity) requireActivity()).updateNavHeader();
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        authManager = AuthManager.getInstance(requireContext());
+    }
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_profile, container, false);
-
-        imgProfilePic = view.findViewById(R.id.imgProfilePic);
-        edtName = view.findViewById(R.id.edtName);
-        edtAge = view.findViewById(R.id.edtAge);
-        genderGroup = view.findViewById(R.id.genderGroup);
-        btnSave = view.findViewById(R.id.btnSave);
-        btnChangePic = view.findViewById(R.id.btnChangePic);
-
-        loadUserInfo();
-
-        btnChangePic.setOnClickListener(v -> openGallery());
-        btnSave.setOnClickListener(v -> saveUserInfo());
-
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_profile_new, container, false);
+        
+        initViews(view);
+        setupListeners();
+        
         return view;
     }
 
-    private void loadUserInfo() {
+    @Override
+    public void onResume() {
+        super.onResume();
+        authManager.addAuthStateListener(this);
+        updateUIForAuthState(authManager.isSignedIn());
+    }
 
-        // name
-        edtName.setText(PreferenceHelper.getUserName(requireContext()));
+    @Override
+    public void onPause() {
+        super.onPause();
+        authManager.removeAuthStateListener(this);
+    }
 
-        // age
-        int age = PreferenceHelper.getUserAge(requireContext());
-        if (age > 0) edtAge.setText(String.valueOf(age));
+    /**
+     * AuthStateListener callback - update UI when auth state changes.
+     */
+    @Override
+    public void onAuthStateChanged(boolean isSignedIn) {
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> updateUIForAuthState(isSignedIn));
+        }
+    }
 
-        // gender
-        String gender = PreferenceHelper.getUserGender(requireContext());
-        if (gender.equalsIgnoreCase("Male"))
-            genderGroup.check(R.id.rbMale);
-        else if (gender.equalsIgnoreCase("Female"))
-            genderGroup.check(R.id.rbFemale);
+    /**
+     * Initialize all views from the layout.
+     */
+    private void initViews(View view) {
+        // User info section
+        layoutUserInfo = view.findViewById(R.id.layoutUserInfo);
+        imgUserAvatar = view.findViewById(R.id.imgUserAvatar);
+        tvUserName = view.findViewById(R.id.tvUserName);
+        tvUserEmail = view.findViewById(R.id.tvUserEmail);
+        cardSettings = view.findViewById(R.id.cardSettings);
 
-        // profile image
-        String imageUriStr = PreferenceHelper.getUserImage(requireContext());
-        if (!imageUriStr.isEmpty()) {
-            imgProfilePic.setImageURI(Uri.parse(imageUriStr));
+        // Sign-in prompt section
+        layoutSignInPrompt = view.findViewById(R.id.layoutSignInPrompt);
+        btnSignIn = view.findViewById(R.id.btnSignIn);
+        cardSettingsNotSignedIn = view.findViewById(R.id.cardSettingsNotSignedIn);
+    }
+
+    /**
+     * Setup click listeners for interactive elements.
+     */
+    private void setupListeners() {
+        // Settings navigation (signed in)
+        cardSettings.setOnClickListener(v -> navigateToSettings());
+        
+        // Settings navigation (not signed in)
+        cardSettingsNotSignedIn.setOnClickListener(v -> navigateToSettings());
+        
+        // Sign in button
+        btnSignIn.setOnClickListener(v -> navigateToAuth());
+    }
+
+    /**
+     * Update UI based on authentication state.
+     * Requirements: 4.3, 4.4
+     * 
+     * @param isSignedIn true if user is signed in, false otherwise
+     */
+    private void updateUIForAuthState(boolean isSignedIn) {
+        if (isSignedIn) {
+            displayUserInfo();
         } else {
-            imgProfilePic.setImageResource(R.drawable.ic_habitor_placeholder);
+            displaySignInPrompt();
         }
     }
 
-    private void saveUserInfo() {
+    /**
+     * Display user information when signed in.
+     * Requirements: 4.1, 4.3
+     * 
+     * Shows:
+     * - User profile image (from preferences or default)
+     * - User name (from preferences)
+     * - User email (from Firebase Auth)
+     * - Settings menu option
+     */
+    private void displayUserInfo() {
+        // Show user info section, hide sign-in prompt
+        layoutUserInfo.setVisibility(View.VISIBLE);
+        layoutSignInPrompt.setVisibility(View.GONE);
 
-        String name = edtName.getText().toString().trim();
-        String ageStr = edtAge.getText().toString().trim();
+        // Load user email from Firebase Auth
+        String email = authManager.getCurrentUserEmail();
+        tvUserEmail.setText(email != null ? email : "");
 
-        if (name.isEmpty() || ageStr.isEmpty()) {
-            Toast.makeText(getContext(), "Please fill all fields", Toast.LENGTH_SHORT).show();
-            return;
+        // Load user name from preferences
+        String userName = PreferenceHelper.getUserName(requireContext());
+        if (userName != null && !userName.isEmpty()) {
+            tvUserName.setText(userName);
+        } else {
+            // Use email prefix as fallback name
+            if (email != null && email.contains("@")) {
+                tvUserName.setText(email.substring(0, email.indexOf("@")));
+            } else {
+                tvUserName.setText("User");
+            }
         }
 
-        int age = Integer.parseInt(ageStr);
-
-        // prevent crash when none selected
-        int selectedId = genderGroup.getCheckedRadioButtonId();
-        String gender = "";
-        if (selectedId != -1) {
-            gender = ((RadioButton) requireView().findViewById(selectedId)).getText().toString();
+        // Load profile image from preferences
+        String imageUriStr = PreferenceHelper.getUserImage(requireContext());
+        if (imageUriStr != null && !imageUriStr.isEmpty()) {
+            try {
+                imgUserAvatar.setImageURI(Uri.parse(imageUriStr));
+            } catch (Exception e) {
+                // Fallback to placeholder if image loading fails
+                imgUserAvatar.setImageResource(R.drawable.ic_habitor_placeholder);
+            }
+        } else {
+            imgUserAvatar.setImageResource(R.drawable.ic_habitor_placeholder);
         }
-
-        // Save basic info
-        PreferenceHelper.saveUserInfo(requireContext(), name, age, gender);
-
-        // Save image if chosen before
-        if (imageUri != null) {
-            PreferenceHelper.saveUserImage(requireContext(), imageUri.toString());
-        }
-
-        // Update drawer header
-        ((MainActivity) requireActivity()).updateNavHeader();
-
-        Toast.makeText(getContext(), "Profile updated!", Toast.LENGTH_SHORT).show();
     }
 
-    private void openGallery() {
-        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        pickImageLauncher.launch(intent);
+    /**
+     * Display sign-in prompt when not signed in.
+     * Requirements: 4.4
+     * 
+     * Shows:
+     * - Welcome message
+     * - Sign-in button
+     * - Settings menu option (still accessible)
+     */
+    private void displaySignInPrompt() {
+        // Hide user info section, show sign-in prompt
+        layoutUserInfo.setVisibility(View.GONE);
+        layoutSignInPrompt.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * Navigate to SettingsFragment.
+     * Requirements: 4.2
+     */
+    private void navigateToSettings() {
+        if (getActivity() instanceof MainActivity) {
+            MainActivity mainActivity = (MainActivity) getActivity();
+            SettingsFragment settingsFragment = SettingsFragment.newInstance();
+            
+            mainActivity.getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.fragment_container, settingsFragment)
+                    .addToBackStack(null)
+                    .commit();
+        }
+    }
+
+    /**
+     * Navigate to AuthFragment for sign in.
+     */
+    private void navigateToAuth() {
+        if (getActivity() instanceof MainActivity) {
+            MainActivity mainActivity = (MainActivity) getActivity();
+            AuthFragment authFragment = AuthFragment.newInstance();
+            authFragment.setOnAuthSuccessListener(() -> {
+                // Refresh profile after successful auth
+                updateUIForAuthState(true);
+                mainActivity.updateNavHeader();
+            });
+            
+            mainActivity.getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.fragment_container, authFragment)
+                    .addToBackStack(null)
+                    .commit();
+        }
     }
 }

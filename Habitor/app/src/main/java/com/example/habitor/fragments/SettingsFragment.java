@@ -139,12 +139,20 @@ public class SettingsFragment extends Fragment implements AuthManager.AuthStateL
         super.onResume();
         authManager.addAuthStateListener(this);
         updateAccountSection();
+        // Hide bottom navigation when viewing settings
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).hideBottomNavigation();
+        }
     }
 
     @Override
     public void onPause() {
         super.onPause();
         authManager.removeAuthStateListener(this);
+        // Show bottom navigation when leaving settings
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).showBottomNavigation();
+        }
     }
 
     /**

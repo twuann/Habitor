@@ -3,5 +3,24 @@
     <style name="Base.Theme.Habitor" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your dark theme here. -->
         <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+        
+        <!-- Bottom Navigation Bar styling for dark theme -->
+        <item name="bottomNavigationStyle">@style/Widget.Habitor.BottomNavigationView</item>
+    </style>
+    
+    <!-- Bottom Navigation View Style - Material Design 3 (Dark Theme) -->
+    <style name="Widget.Habitor.BottomNavigationView" parent="Widget.Material3.BottomNavigationView">
+        <item name="android:background">@color/bottom_nav_background</item>
+        <item name="itemIconTint">@color/bottom_nav_item_color</item>
+        <item name="itemTextColor">@color/bottom_nav_item_color</item>
+        <item name="itemActiveIndicatorStyle">@style/Widget.Habitor.BottomNavigationView.ActiveIndicator</item>
+        <item name="labelVisibilityMode">labeled</item>
+        <item name="itemPaddingTop">8dp</item>
+        <item name="itemPaddingBottom">8dp</item>
+    </style>
+    
+    <!-- Active Indicator Style with 200ms animation -->
+    <style name="Widget.Habitor.BottomNavigationView.ActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@color/bottom_nav_indicator</item>
     </style>
 </resources>

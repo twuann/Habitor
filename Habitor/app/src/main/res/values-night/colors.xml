@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Bottom Navigation Colors (Dark Theme) -->
+    <color name="bottom_nav_background">#1C1C1E</color>
+    <color name="bottom_nav_selected">#7ACBEE</color>
+    <color name="bottom_nav_unselected">#9E9E9E</color>
+    <color name="bottom_nav_indicator">#1E3A4A</color>
+</resources>
