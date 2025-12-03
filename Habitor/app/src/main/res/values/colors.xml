@@ -5,4 +5,22 @@
     <color name="text_primary">#333333</color>
     <color name="text_secondary">#555555</color>
     <color name="white">#FFFFFF</color>
+    
+    <!-- Priority Colors -->
+    <color name="priority_high">#E53935</color>
+    <color name="priority_medium">#FFA726</color>
+    <color name="priority_low">#66BB6A</color>
+    
+    <!-- Category Colors -->
+    <color name="category_health">#4CAF50</color>
+    <color name="category_work">#2196F3</color>
+    <color name="category_personal">#9C27B0</color>
+    <color name="category_learning">#FF9800</color>
+    <color name="category_other">#607D8B</color>
+    
+    <!-- UI Colors -->
+    <color name="streak_fire">#FF5722</color>
+    <color name="completed_green">#4CAF50</color>
+    <color name="progress_background">#E0E0E0</color>
+    <color name="celebration_gold">#FFD700</color>
 </resources>

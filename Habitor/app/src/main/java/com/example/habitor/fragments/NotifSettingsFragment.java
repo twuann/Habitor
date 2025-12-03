@@ -16,6 +16,18 @@ import com.example.habitor.R;
 import com.example.habitor.utils.AlarmReceiver;
 import java.util.Calendar;
 
+/**
+ * @deprecated This fragment has been replaced by {@link SettingsFragment} which provides
+ * a unified settings experience combining Account, Profile, and Notification settings.
+ * This class is kept for reference only and should not be used in new code.
+ * 
+ * <p>Migration: Use {@link SettingsFragment} instead, which includes all notification
+ * settings functionality in the Notifications section.</p>
+ * 
+ * @see SettingsFragment
+ * @see <a href=".kiro/specs/drawer-auth-sync/requirements.md">Requirements 4.2</a>
+ */
+@Deprecated
 public class NotifSettingsFragment extends Fragment {
 
     private TimePicker timePicker;

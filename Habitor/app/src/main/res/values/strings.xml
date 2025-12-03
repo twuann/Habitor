@@ -9,4 +9,27 @@
     <string name="notif">Notifications</string>
     <string name="title_notification_settings">Notification Settings</string>
     <string name="label_enable_reminder">Enable Daily Reminder</string>
+    
+    <!-- Auth Strings -->
+    <string name="sign_in">Sign In</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="auth_subtitle_sign_in">Sign in to sync your habits across devices</string>
+    <string name="auth_subtitle_sign_up">Create an account to sync your habits</string>
+    <string name="no_account_prompt">Don\'t have an account?</string>
+    <string name="have_account_prompt">Already have an account?</string>
+    <string name="continue_without_account">Continue without account</string>
+    <string name="settings">Settings</string>
+    
+    <!-- Merge Dialog Strings -->
+    <string name="merge_dialog_title">Existing Habits Found</string>
+    <string name="merge_dialog_message">You have local habits on this device. How would you like to handle them?</string>
+    <string name="merge_option_keep_local">Keep local habits (upload to cloud)</string>
+    <string name="merge_option_keep_cloud">Keep cloud habits (replace local)</string>
+    <string name="merge_option_merge_both">Merge both (combine all habits)</string>
+    <string name="local_habits_count">Local habits: %d</string>
+    <string name="cloud_habits_count">Cloud habits: %d</string>
+    <string name="merge_confirm">Confirm</string>
+    <string name="merge_cancel">Cancel</string>
 </resources>

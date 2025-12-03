@@ -2,8 +2,22 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Quyền cho thông báo (Android 13+) -->
+    <!-- Internet permission for Firebase -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    
+    <!-- Notification permission (Android 13+) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    
+    <!-- Exact alarm permission for habit reminders -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    
+    <!-- Boot completed permission for rescheduling alarms after device restart -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    
+    <!-- Location permissions for habit location feature -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -36,6 +50,43 @@
             android:name=".utils.AlarmReceiver"
             android:enabled="true"
             android:exported="true" />
+
+        <!-- Boot Receiver for rescheduling alarms after device restart -->
+        <receiver
+            android:name=".utils.BootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Notification Action Receiver for handling Mark Complete and Snooze actions -->
+        <receiver
+            android:name=".utils.NotificationActionReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.example.habitor.ACTION_MARK_COMPLETE" />
+                <action android:name="com.example.habitor.ACTION_SNOOZE" />
+            </intent-filter>
+        </receiver>
+
+        <!-- End of Day Reminder Receiver for high priority habits -->
+        <receiver
+            android:name=".utils.EndOfDayReminderReceiver"
+            android:enabled="true"
+            android:exported="false" />
+
+        <!-- Geofence Broadcast Receiver for location-based reminders -->
+        <receiver
+            android:name=".utils.GeofenceBroadcastReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.location.Geofence" />
+            </intent-filter>
+        </receiver>
 
     </application>
 

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "735829617324",
+    "project_id": "habitor-3ac3f",
+    "storage_bucket": "habitor-3ac3f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:735829617324:android:50869e9b4549c337564d09",
+        "android_client_info": {
+          "package_name": "com.example.habitor"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBIq0Yr6RRCmogHXn2A6_sNLO7NnOjocck"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

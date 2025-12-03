@@ -6,32 +6,51 @@
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     tools:context=".activities.MainActivity">
 
     <!-- 🟦 Vùng nội dung chính -->
-    <LinearLayout
-        android:orientation="vertical"
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <!-- 🧭 Thanh Toolbar (hiện nút menu 3 gạch) -->
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
+        <LinearLayout
+            android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="#DDDDDD"
-            android:src="@mipmap/ic_habitor"
-            android:titleTextColor="@android:color/white"
-            app:titleCentered="true"
-            app:navigationIconTint="@android:color/white" />
+            android:layout_height="match_parent">
 
-        <!-- 🟩 Fragment container -->
-        <FrameLayout
-            android:id="@+id/fragment_container"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="#0D0D0D" />
-    </LinearLayout>
+            <!-- 🧭 Thanh Toolbar (hiện nút menu 3 gạch) -->
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="#DDDDDD"
+                android:src="@mipmap/ic_habitor"
+                android:titleTextColor="@android:color/white"
+                app:titleCentered="true"
+                app:navigationIconTint="@android:color/white" />
+
+            <!-- 🟩 Fragment container -->
+            <FrameLayout
+                android:id="@+id/fragment_container"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#0D0D0D" />
+        </LinearLayout>
+
+        <!-- FAB for adding new habit -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabAddHabit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="16dp"
+            android:contentDescription="Add new habit"
+            android:src="@android:drawable/ic_input_add"
+            app:backgroundTint="@color/primary"
+            app:tint="@color/white" />
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
     <!-- 🟨 Thanh Navigation Drawer -->
     <com.google.android.material.navigation.NavigationView

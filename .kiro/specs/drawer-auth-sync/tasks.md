@@ -1,0 +1,146 @@
+# Implementation Plan
+
+- [x] 1. Setup and Dependencies
+  - [x] 1.1 Add Firebase Authentication dependency to build.gradle
+    - Add `implementation 'com.google.firebase:firebase-auth'` to app/build.gradle (jqwik already added)
+    - Sync gradle
+    - _Requirements: 1.1, 1.2_
+
+- [x] 2. Create AuthManager
+  - [x] 2.1 Create AuthManager class with Firebase Authentication integration
+    - Create `AuthManager.java` in `utils` package
+    - Implement singleton pattern
+    - Implement `signUp(email, password, callback)` method
+    - Implement `signIn(email, password, callback)` method
+    - Implement `signOut()` method
+    - Implement `isSignedIn()`, `getCurrentUserEmail()`, `getCurrentUserId()` methods
+    - Implement `AuthStateListener` interface and listener management
+    - _Requirements: 1.2, 1.3, 2.2, 2.5_
+  - [x] 2.2 Create validation utility methods in AuthManager
+    - Implement `isValidEmail(String email)` method using regex
+    - Implement `isValidPassword(String password)` method (min 6 chars)
+    - Map Firebase error codes to user-friendly messages
+    - _Requirements: 1.4, 1.5, 1.6, 2.3, 2.4_
+  - [ ]* 2.3 Write property test for email and password validation
+    - **Property 1: Email and Password Validation**
+    - **Validates: Requirements 1.2, 1.4, 1.6**
+
+- [x] 3. Update PreferenceHelper for Auth State
+  - [x] 3.1 Add auth-related methods to PreferenceHelper
+    - Add `KEY_FIREBASE_UID`, `KEY_USER_EMAIL`, `KEY_IS_SIGNED_IN` constants
+    - Implement `saveAuthState(uid, email)` method
+    - Implement `clearAuthState()` method
+    - Implement `getFirebaseUid()`, `getUserEmail()`, `isSignedIn()` methods
+    - _Requirements: 2.5, 5.3_
+
+- [x] 4. Create Auth UI
+  - [x] 4.1 Create AuthFragment layout
+    - Create `fragment_auth.xml` with email input, password input, submit button, toggle button
+    - Add progress indicator and error text view
+    - Style to match app theme
+    - _Requirements: 1.1, 2.1_
+  - [x] 4.2 Implement AuthFragment
+    - Create `AuthFragment.java` in `fragments` package
+    - Implement toggle between sign up and sign in modes
+    - Connect to AuthManager for authentication
+    - Handle success/error callbacks
+    - Navigate to home on success
+    - _Requirements: 1.1, 1.2, 1.3, 2.1, 2.2_
+
+- [x] 5. Update Navigation Drawer
+  - [x] 5.1 Update nav_drawer_menu.xml
+    - Remove `nav_profile` and `nav_notif` items
+    - Add `nav_settings` item
+    - Keep: Home, Calendar, Search, Trash, Settings
+    - _Requirements: 4.1, 4.2_
+  - [x] 5.2 Update nav_header.xml for system bars and auth state
+    - Add `android:fitsSystemWindows="true"` to root layout
+    - Add proper padding for status bar
+    - Add `tvSyncStatus` TextView for sync indicator
+    - Make header clickable
+    - _Requirements: 3.1, 3.2, 3.5_
+  - [x] 5.3 Update MainActivity for new navigation
+    - Remove ProfileFragment and NotifSettingsFragment navigation
+    - Add SettingsFragment and AuthFragment navigation
+    - Handle nav header click - navigate to auth or settings based on auth state
+    - Update `updateNavHeader()` to show email or "Tap to sign in"
+    - _Requirements: 3.3, 3.4, 4.3_
+  - [ ]* 5.4 Write property test for drawer header display state
+    - **Property 2: Drawer Header Display State**
+    - **Validates: Requirements 3.1, 3.2**
+  - [ ]* 5.5 Write property test for menu navigation consistency
+    - **Property 3: Menu Navigation Consistency**
+    - **Validates: Requirements 4.3**
+
+- [x] 6. Create Settings Fragment
+  - [x] 6.1 Create SettingsFragment layout
+    - Create `fragment_settings.xml` with sections: Account, Profile, Notifications
+    - Account section: email display, sync status, last sync time, Sign Out button, Sync Now button
+    - Profile section: name input, profile image
+    - Notifications section: notification toggles
+    - _Requirements: 5.1, 5.2, 5.4_
+  - [x] 6.2 Implement SettingsFragment
+    - Create `SettingsFragment.java` in `fragments` package
+    - Load and display account info from AuthManager
+    - Implement Sign Out functionality
+    - Implement Sync Now functionality
+    - Migrate profile editing from old ProfileFragment
+    - Migrate notification settings from old NotifSettingsFragment
+    - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
+
+- [x] 7. Checkpoint
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 8. Update SyncManager for Firebase UID
+  - [x] 8.1 Update SyncManager to use Firebase UID when signed in
+    - Modify `getUserId()` method to check AuthManager first
+    - Return Firebase UID if signed in, device ID otherwise
+    - Add `shouldSync()` method to check if sync should be performed
+    - _Requirements: 6.4_
+  - [x] 8.2 Update sync trigger logic
+    - Modify habit create/update methods to trigger sync when signed in
+    - Ensure no sync is triggered when not signed in
+    - _Requirements: 6.2, 7.2_
+  - [ ]* 8.3 Write property test for user ID selection
+    - **Property 6: User ID Selection for Sync**
+    - **Validates: Requirements 6.4**
+  - [ ]* 8.4 Write property test for no sync when not signed in
+    - **Property 7: No Sync When Not Signed In**
+    - **Validates: Requirements 7.2**
+
+- [x] 9. Implement Auto-Sync on Sign In
+  - [x] 9.1 Trigger sync on successful sign in
+    - Add sync call in AuthManager after successful sign in
+    - Update MainActivity to refresh data after sync
+    - _Requirements: 6.1_
+  - [x] 9.2 Implement offline queue for habit changes
+    - Ensure SyncManager queues changes when offline
+    - Process queue when connectivity is restored
+    - _Requirements: 6.3_
+  - [ ]* 9.3 Write property test for offline queue consistency
+    - **Property 5: Offline Queue Consistency**
+    - **Validates: Requirements 6.3**
+  - [ ]* 9.4 Write property test for sync trigger on habit change
+    - **Property 4: Sync Trigger on Habit Change**
+    - **Validates: Requirements 6.2**
+
+- [x] 10. Implement Local-to-Cloud Migration
+  - [x] 10.1 Implement merge dialog when signing in with existing local data
+    - Create dialog to ask user how to handle existing local habits
+    - Options: Keep local, Keep cloud, Merge both
+    - _Requirements: 7.3_
+  - [x] 10.2 Implement merge strategies
+    - Implement KEEP_LOCAL strategy
+    - Implement KEEP_CLOUD strategy
+    - Implement MERGE_BOTH strategy with timestamp-based conflict resolution
+    - _Requirements: 7.3_
+
+- [x] 11. Cleanup Old Code
+  - [x] 11.1 Remove deprecated fragments and update references
+    - Delete or deprecate old ProfileFragment (keep for reference if needed)
+    - Delete or deprecate old NotifSettingsFragment
+    - Update any remaining references in codebase
+    - _Requirements: 4.2_
+
+- [x] 12. Final Checkpoint
+  - Ensure all tests pass, ask the user if questions arise.
