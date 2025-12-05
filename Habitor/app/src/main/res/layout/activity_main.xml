@@ -18,11 +18,11 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="#DDDDDD"
+            android:background="@color/surface"
             android:src="@mipmap/ic_habitor"
-            android:titleTextColor="@android:color/white"
+            app:titleTextColor="@color/text_primary"
             app:titleCentered="true"
-            app:navigationIconTint="@android:color/white" />
+            app:navigationIconTint="@color/text_primary" />
 
         <!-- Fragment container -->
         <FrameLayout
