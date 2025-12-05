@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/white"
+    android:background="@color/background_primary"
     android:fillViewport="true">
 
     <LinearLayout
@@ -77,6 +77,82 @@
             android:textColorHint="@color/text_secondary"
             android:textSize="16sp" />
 
+        <!-- Image Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Image (optional)"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp" />
+
+        <LinearLayout
+            android:id="@+id/layoutImage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="vertical">
+
+            <!-- Image Preview Container -->
+            <FrameLayout
+                android:id="@+id/frameImagePreview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <ImageView
+                    android:id="@+id/ivImagePreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="150dp"
+                    android:background="@drawable/bg_category_chip"
+                    android:contentDescription="Habit image preview"
+                    android:scaleType="centerCrop" />
+
+                <!-- Remove Image Button -->
+                <ImageButton
+                    android:id="@+id/btnRemoveImage"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_gravity="top|end"
+                    android:layout_margin="8dp"
+                    android:background="@drawable/bg_category_chip"
+                    android:contentDescription="Remove image"
+                    android:padding="6dp"
+                    android:src="@android:drawable/ic_menu_close_clear_cancel"
+                    android:tint="@color/text_primary" />
+
+            </FrameLayout>
+
+            <!-- Image Selection Buttons -->
+            <LinearLayout
+                android:id="@+id/layoutImageButtons"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSelectGallery"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:text="📷 Gallery"
+                    android:textColor="@color/text_primary" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnTakePhoto"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="📸 Camera"
+                    android:textColor="@color/text_primary" />
+
+            </LinearLayout>
+
+        </LinearLayout>
 
         <!-- Priority Section -->
         <TextView
@@ -368,6 +444,15 @@
             android:orientation="vertical"
             android:visibility="gone"
             tools:visibility="visible">
+
+            <RadioButton
+                android:id="@+id/radioNever"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="12dp"
+                android:text="Never (one-time)"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp" />
 
             <RadioButton
                 android:id="@+id/radioDaily"

@@ -4,6 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="8dp"
+    card_view:cardBackgroundColor="@color/card_background"
     card_view:cardCornerRadius="10dp"
     card_view:cardElevation="4dp">
 
@@ -14,11 +15,21 @@
         android:padding="12dp"
         android:gravity="center_vertical">
 
+        <!-- Habit Image Thumbnail -->
+        <ImageView
+            android:id="@+id/ivHabitImage"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="12dp"
+            android:scaleType="centerCrop"
+            android:visibility="gone"
+            android:contentDescription="@string/habit_image" />
+
         <TextView
             android:id="@+id/tvHabitItemName"
             android:text="Habit Name"
             android:textSize="20sp"
-            android:textColor="#333333"
+            android:textColor="@color/text_primary"
             android:layout_weight="1"
             android:layout_width="0dp"
             android:layout_height="wrap_content" />

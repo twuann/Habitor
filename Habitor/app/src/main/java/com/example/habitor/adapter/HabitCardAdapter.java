@@ -3,11 +3,15 @@ package com.example.habitor.adapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -19,6 +23,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.habitor.R;
 import com.example.habitor.model.Habit;
 import com.example.habitor.model.Priority;
+
+import java.io.File;
+import java.io.InputStream;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -95,6 +102,9 @@ public class HabitCardAdapter extends RecyclerView.Adapter<HabitCardAdapter.View
 
         // Set habit name
         holder.tvHabitName.setText(habit.getName());
+
+        // Set habit image thumbnail
+        loadHabitImage(holder.ivHabitImage, habit);
 
         // Set priority indicator color
         setPriorityIndicator(holder.viewPriorityIndicator, habit.getPriority());
@@ -249,9 +259,56 @@ public class HabitCardAdapter extends RecyclerView.Adapter<HabitCardAdapter.View
         animatorSet.start();
     }
 
+    /**
+     * Load habit image thumbnail from imagePath.
+     * Shows the image if available, hides the ImageView if no image.
+     * Requirements: 2.5
+     */
+    private void loadHabitImage(ImageView imageView, Habit habit) {
+        if (habit.hasImage()) {
+            String imagePath = habit.getImagePath();
+            Bitmap bitmap = null;
+            
+            try {
+                if (imagePath.startsWith("content://")) {
+                    // Load from content URI
+                    Uri uri = Uri.parse(imagePath);
+                    InputStream inputStream = context.getContentResolver().openInputStream(uri);
+                    if (inputStream != null) {
+                        bitmap = BitmapFactory.decodeStream(inputStream);
+                        inputStream.close();
+                    }
+                } else {
+                    // Load from file path
+                    File file = new File(imagePath);
+                    if (file.exists()) {
+                        bitmap = BitmapFactory.decodeFile(imagePath);
+                    }
+                }
+            } catch (Exception e) {
+                // Image loading failed, will show placeholder or hide
+                bitmap = null;
+            }
+            
+            if (bitmap != null) {
+                imageView.setImageBitmap(bitmap);
+                imageView.setVisibility(View.VISIBLE);
+            } else {
+                // Image file not found or failed to load, hide the ImageView
+                imageView.setImageDrawable(null);
+                imageView.setVisibility(View.GONE);
+            }
+        } else {
+            // No image attached, hide the ImageView
+            imageView.setImageDrawable(null);
+            imageView.setVisibility(View.GONE);
+        }
+    }
+
     public static class ViewHolder extends RecyclerView.ViewHolder {
         CardView cardView;
         View viewPriorityIndicator;
+        ImageView ivHabitImage;
         TextView tvHabitName;
         TextView tvCategory;
         TextView tvStreakIcon;
@@ -266,6 +323,7 @@ public class HabitCardAdapter extends RecyclerView.Adapter<HabitCardAdapter.View
             super(itemView);
             cardView = itemView.findViewById(R.id.cardHabit);
             viewPriorityIndicator = itemView.findViewById(R.id.viewPriorityIndicator);
+            ivHabitImage = itemView.findViewById(R.id.ivHabitImage);
             tvHabitName = itemView.findViewById(R.id.tvHabitName);
             tvCategory = itemView.findViewById(R.id.tvCategory);
             tvStreakIcon = itemView.findViewById(R.id.tvStreakIcon);

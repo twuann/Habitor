@@ -23,6 +23,7 @@ public class RepeatPatternFormatter {
     };
 
     // Format prefixes for parsing
+    private static final String PREFIX_ONE_TIME = "One-time";
     private static final String PREFIX_DAILY = "Daily";
     private static final String PREFIX_WEEKLY = "Weekly: ";
     private static final String PREFIX_EVERY = "Every ";
@@ -42,6 +43,9 @@ public class RepeatPatternFormatter {
         }
 
         switch (pattern) {
+            case NEVER:
+                return PREFIX_ONE_TIME;
+
             case DAILY:
                 return PREFIX_DAILY;
 
@@ -69,6 +73,11 @@ public class RepeatPatternFormatter {
         }
 
         formatted = formatted.trim();
+
+        // Check for One-time (NEVER)
+        if (formatted.equals(PREFIX_ONE_TIME)) {
+            return new ParsedPattern(RepeatPattern.NEVER, "[]", 0);
+        }
 
         // Check for Daily
         if (formatted.equals(PREFIX_DAILY)) {

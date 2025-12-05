@@ -33,6 +33,9 @@ public class PreferenceHelper {
     private static final String KEY_FIREBASE_UID = "firebase_uid";
     private static final String KEY_USER_EMAIL = "user_email";
     private static final String KEY_IS_SIGNED_IN = "is_signed_in";
+    
+    // Theme preference key (Requirements: 1.5, 1.6)
+    private static final String KEY_THEME_MODE = "theme_mode";
 
     // ==========================
     // SAVE USER INFO
@@ -305,5 +308,39 @@ public class PreferenceHelper {
     public static boolean isSignedIn(Context context) {
         return context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
                 .getBoolean(KEY_IS_SIGNED_IN, false);
+    }
+
+    // ==========================
+    // THEME PREFERENCES (Requirements: 1.5, 1.6)
+    // ==========================
+
+    /**
+     * Save the theme mode preference.
+     * Called when user selects a theme option in Settings.
+     *
+     * @param context Application context
+     * @param themeMode The theme mode string (LIGHT, DARK, or SYSTEM)
+     * 
+     * Requirements: 1.5, 1.6
+     */
+    public static void saveThemeMode(Context context, String themeMode) {
+        SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        prefs.edit()
+                .putString(KEY_THEME_MODE, themeMode)
+                .apply();
+    }
+
+    /**
+     * Get the saved theme mode preference.
+     * Returns SYSTEM as default if no preference has been saved.
+     *
+     * @param context Application context
+     * @return The saved theme mode string, or "SYSTEM" if not set
+     * 
+     * Requirements: 1.5, 1.6
+     */
+    public static String getThemeMode(Context context) {
+        return context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+                .getString(KEY_THEME_MODE, "SYSTEM");
     }
 }

@@ -1,5 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Primary Colors (Dark Theme) -->
+    <color name="primary">#7ACBEE</color>
+    <color name="primary_dark">#5FB8E2</color>
+    <color name="accent">#1E3A4A</color>
+    <color name="text_primary">#E0E0E0</color>
+    <color name="text_secondary">#B0B0B0</color>
+    <color name="white">#1C1C1E</color>
+    
+    <!-- Background Colors -->
+    <color name="background_primary">#121212</color>
+    <color name="background_secondary">#1E1E1E</color>
+    <color name="surface">#1C1C1E</color>
+    <color name="card_background">#2C2C2E</color>
+    
+    <!-- Priority Colors (Dark Theme - slightly muted) -->
+    <color name="priority_high">#EF5350</color>
+    <color name="priority_medium">#FFB74D</color>
+    <color name="priority_low">#81C784</color>
+    
+    <!-- Category Colors (Dark Theme - slightly muted) -->
+    <color name="category_health">#66BB6A</color>
+    <color name="category_work">#42A5F5</color>
+    <color name="category_personal">#AB47BC</color>
+    <color name="category_learning">#FFA726</color>
+    <color name="category_other">#78909C</color>
+    
+    <!-- UI Colors -->
+    <color name="streak_fire">#FF7043</color>
+    <color name="completed_green">#66BB6A</color>
+    <color name="progress_background">#3C3C3E</color>
+    <color name="celebration_gold">#FFD54F</color>
+    <color name="divider">#3C3C3E</color>
+    
     <!-- Bottom Navigation Colors (Dark Theme) -->
     <color name="bottom_nav_background">#1C1C1E</color>
     <color name="bottom_nav_selected">#7ACBEE</color>

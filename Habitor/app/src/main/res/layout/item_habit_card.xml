@@ -8,6 +8,7 @@
     android:layout_marginHorizontal="8dp"
     android:layout_marginVertical="6dp"
     android:foreground="?attr/selectableItemBackground"
+    app:cardBackgroundColor="@color/card_background"
     app:cardCornerRadius="12dp"
     app:cardElevation="4dp">
 
@@ -24,6 +25,17 @@
             android:layout_height="match_parent"
             android:layout_marginEnd="12dp"
             android:background="@color/priority_medium" />
+
+        <!-- Habit Image Thumbnail -->
+        <ImageView
+            android:id="@+id/ivHabitImage"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="12dp"
+            android:layout_gravity="center_vertical"
+            android:scaleType="centerCrop"
+            android:visibility="gone"
+            android:contentDescription="@string/habit_image" />
 
         <!-- Main Content -->
         <LinearLayout

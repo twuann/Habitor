@@ -18,6 +18,7 @@ import com.example.habitor.fragments.TrashFragment;
 import com.example.habitor.sync.SyncManager;
 import com.example.habitor.utils.AlarmScheduler;
 import com.example.habitor.utils.AuthManager;
+import com.example.habitor.utils.ThemeManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -38,6 +39,11 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Apply saved theme before super.onCreate() and setContentView()
+        // Requirement 1.5: Restore previously selected theme preference on app launch
+        ThemeManager.ThemeMode savedTheme = ThemeManager.getThemePreference(this);
+        ThemeManager.applyTheme(savedTheme);
+        
         super.onCreate(savedInstanceState);
         
         // Enable edge-to-edge display (transparent status bar)

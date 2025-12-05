@@ -37,4 +37,8 @@
     <string name="cloud_habits_count">Cloud habits: %d</string>
     <string name="merge_confirm">Confirm</string>
     <string name="merge_cancel">Cancel</string>
+    
+    <!-- Habit Image -->
+    <string name="habit_image">Habit image</string>
+    <string name="habit_image_placeholder">Habit image placeholder</string>
 </resources>

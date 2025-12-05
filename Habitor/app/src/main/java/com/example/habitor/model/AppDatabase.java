@@ -9,7 +9,7 @@ import androidx.room.RoomDatabase;
 import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
-@Database(entities = {Habit.class, HabitHistory.class, Category.class, SyncOperation.class}, version = 4)
+@Database(entities = {Habit.class, HabitHistory.class, Category.class, SyncOperation.class}, version = 5)
 public abstract class AppDatabase extends RoomDatabase {
 
     public abstract HabitDao habitDao();
@@ -78,6 +78,16 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
+    // MIGRATION from version 4 → 5
+    // Adds imagePath field to Habit table for habit image attachment
+    static final Migration MIGRATION_4_5 = new Migration(4, 5) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase db) {
+            // Add imagePath column to Habit table
+            db.execSQL("ALTER TABLE Habit ADD COLUMN imagePath TEXT DEFAULT NULL");
+        }
+    };
+
     // Singleton to avoid creating multiple DB instances
     private static volatile AppDatabase INSTANCE;
 
@@ -90,7 +100,7 @@ public abstract class AppDatabase extends RoomDatabase {
                                     AppDatabase.class,
                                     "habitor_db"
                             )
-                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                             .allowMainThreadQueries()
                             .build();
                 }

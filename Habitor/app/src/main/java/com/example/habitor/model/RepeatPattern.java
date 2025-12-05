@@ -5,6 +5,7 @@ package com.example.habitor.model;
  * Defines how often a reminder should trigger.
  */
 public enum RepeatPattern {
+    NEVER,      // One-time, no repeat
     DAILY,      // Every day
     WEEKLY,     // Specific days of week
     CUSTOM;     // Every N days

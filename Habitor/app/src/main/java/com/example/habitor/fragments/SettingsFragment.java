@@ -34,6 +34,7 @@ import com.example.habitor.sync.SyncManager;
 import com.example.habitor.utils.AlarmReceiver;
 import com.example.habitor.utils.AuthManager;
 import com.example.habitor.utils.PreferenceHelper;
+import com.example.habitor.utils.ThemeManager;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.io.IOException;
@@ -69,6 +70,12 @@ public class SettingsFragment extends Fragment implements AuthManager.AuthStateL
     private Button btnChangePic;
     private Button btnSaveProfile;
     private Uri imageUri;
+
+    // Appearance section views
+    private RadioGroup themeRadioGroup;
+    private RadioButton rbThemeLight;
+    private RadioButton rbThemeDark;
+    private RadioButton rbThemeSystem;
 
     // Notification section views
     private SwitchCompat switchDailyReminder;
@@ -188,6 +195,12 @@ public class SettingsFragment extends Fragment implements AuthManager.AuthStateL
         btnChangePic = view.findViewById(R.id.btnChangePic);
         btnSaveProfile = view.findViewById(R.id.btnSaveProfile);
 
+        // Appearance section
+        themeRadioGroup = view.findViewById(R.id.themeRadioGroup);
+        rbThemeLight = view.findViewById(R.id.rbThemeLight);
+        rbThemeDark = view.findViewById(R.id.rbThemeDark);
+        rbThemeSystem = view.findViewById(R.id.rbThemeSystem);
+
         // Notification section
         switchDailyReminder = view.findViewById(R.id.switchDailyReminder);
         switchEndOfDayReminder = view.findViewById(R.id.switchEndOfDayReminder);
@@ -215,6 +228,23 @@ public class SettingsFragment extends Fragment implements AuthManager.AuthStateL
         // Profile section listeners
         btnChangePic.setOnClickListener(v -> openGallery());
         btnSaveProfile.setOnClickListener(v -> saveProfile());
+
+        // Appearance section listeners - Theme selection
+        // Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6
+        themeRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            ThemeManager.ThemeMode selectedMode;
+            if (checkedId == R.id.rbThemeLight) {
+                selectedMode = ThemeManager.ThemeMode.LIGHT;
+            } else if (checkedId == R.id.rbThemeDark) {
+                selectedMode = ThemeManager.ThemeMode.DARK;
+            } else {
+                selectedMode = ThemeManager.ThemeMode.SYSTEM;
+            }
+            // Save preference to SharedPreferences (Requirements: 1.5, 1.6)
+            ThemeManager.saveThemePreference(requireContext(), selectedMode);
+            // Apply theme immediately without restart (Requirements: 1.2, 1.3, 1.4)
+            ThemeManager.applyTheme(selectedMode);
+        });
 
         // Notification section listeners
         switchDailyReminder.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -248,6 +278,7 @@ public class SettingsFragment extends Fragment implements AuthManager.AuthStateL
     private void loadData() {
         updateAccountSection();
         loadProfileData();
+        loadThemeSettings();
         loadNotificationSettings();
     }
 
@@ -474,6 +505,33 @@ public class SettingsFragment extends Fragment implements AuthManager.AuthStateL
     private void openGallery() {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         pickImageLauncher.launch(intent);
+    }
+
+    // ========================================
+    // APPEARANCE SECTION (Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6)
+    // ========================================
+
+    /**
+     * Load theme settings from preferences and update UI.
+     * Requirements: 1.1, 1.5
+     */
+    private void loadThemeSettings() {
+        // Load current theme preference (Requirements: 1.5)
+        ThemeManager.ThemeMode currentMode = ThemeManager.getThemePreference(requireContext());
+        
+        // Update RadioGroup to reflect current selection (Requirements: 1.1)
+        switch (currentMode) {
+            case LIGHT:
+                themeRadioGroup.check(R.id.rbThemeLight);
+                break;
+            case DARK:
+                themeRadioGroup.check(R.id.rbThemeDark);
+                break;
+            case SYSTEM:
+            default:
+                themeRadioGroup.check(R.id.rbThemeSystem);
+                break;
+        }
     }
 
     // ========================================

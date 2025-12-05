@@ -52,10 +52,24 @@ public class AlarmScheduler {
         this.executor = Executors.newSingleThreadExecutor();
     }
 
+    /**
+     * Check if a habit should be excluded from recurring reminder scheduling.
+     * Requirements: 3.3 - NEVER pattern habits are excluded from recurring reminder scheduling
+     * 
+     * @param habit The habit to check
+     * @return true if the habit should be excluded from recurring scheduling
+     */
+    public static boolean shouldExcludeFromRecurringScheduling(Habit habit) {
+        if (habit == null) {
+            return true;
+        }
+        return habit.getRepeatPatternEnum() == RepeatPattern.NEVER;
+    }
 
     /**
      * Schedule a reminder for a habit.
      * Requirements: 4.2 - Schedule local alarm using AlarmManager for specific time
+     * Requirements: 3.3 - NEVER pattern habits are excluded from recurring reminder scheduling
      * 
      * @param habit The habit to schedule reminder for
      */
@@ -66,8 +80,17 @@ public class AlarmScheduler {
         }
 
         long triggerTime = calculateNextTriggerTime(habit);
-        if (triggerTime <= System.currentTimeMillis()) {
-            // If calculated time is in the past, schedule for next occurrence
+        
+        // For NEVER pattern, only allow one-time reminder if the time hasn't passed
+        // Do not reschedule for next occurrence
+        if (habit.getRepeatPatternEnum() == RepeatPattern.NEVER) {
+            if (triggerTime <= System.currentTimeMillis()) {
+                Log.d(TAG, "Skipping NEVER pattern habit - one-time reminder time has passed");
+                return;
+            }
+            // Continue to schedule the one-time reminder
+        } else if (triggerTime <= System.currentTimeMillis()) {
+            // If calculated time is in the past, schedule for next occurrence (only for recurring patterns)
             triggerTime = calculateNextOccurrence(habit, triggerTime);
         }
 
@@ -223,11 +246,16 @@ public class AlarmScheduler {
 
     /**
      * Adjust the trigger time based on the repeat pattern.
+     * Requirements: 3.3 - NEVER pattern habits use the exact scheduled time without adjustment
      */
     private long adjustForRepeatPattern(Habit habit, Calendar calendar) {
         RepeatPattern pattern = habit.getRepeatPatternEnum();
         
         switch (pattern) {
+            case NEVER:
+                // One-time reminder - use the exact scheduled time, no adjustment needed
+                return calendar.getTimeInMillis();
+                
             case DAILY:
                 // Already set for next occurrence
                 return calendar.getTimeInMillis();
@@ -283,6 +311,7 @@ public class AlarmScheduler {
 
     /**
      * Calculate the next occurrence after a given time.
+     * Requirements: 3.3 - NEVER pattern habits should not have recurring occurrences
      */
     private long calculateNextOccurrence(Habit habit, long currentTriggerTime) {
         Calendar calendar = Calendar.getInstance();
@@ -291,6 +320,11 @@ public class AlarmScheduler {
         RepeatPattern pattern = habit.getRepeatPatternEnum();
         
         switch (pattern) {
+            case NEVER:
+                // NEVER pattern should not have recurring occurrences
+                // Return 0 to indicate no next occurrence
+                return 0;
+                
             case DAILY:
                 calendar.add(Calendar.DAY_OF_YEAR, 1);
                 break;

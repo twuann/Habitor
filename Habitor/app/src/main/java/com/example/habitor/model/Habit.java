@@ -41,6 +41,9 @@ public class Habit {
     public boolean isLocationReminderEnabled;  // Enable/disable location-based reminder
     public String locationTriggerType;  // ENTER or EXIT
 
+    // Image field
+    public String imagePath;            // Local file path or URI string for habit image
+
     // Default constructor for Room
     public Habit() {
         this.name = "";
@@ -62,6 +65,7 @@ public class Habit {
         this.locationRadius = 100;
         this.isLocationReminderEnabled = false;
         this.locationTriggerType = LocationTriggerType.ENTER.name();
+        this.imagePath = null;
     }
 
     // Constructor for creating new Habit with name
@@ -270,6 +274,23 @@ public class Habit {
         return latitude != null && longitude != null;
     }
 
+    // Image getters and setters
+    public String getImagePath() {
+        return imagePath;
+    }
+
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
+    }
+
+    /**
+     * Check if this habit has an attached image.
+     * @return true if imagePath is not null and not empty
+     */
+    public boolean hasImage() {
+        return imagePath != null && !imagePath.isEmpty();
+    }
+
 
     // ===========================
     // FIRESTORE SERIALIZATION
@@ -302,6 +323,8 @@ public class Habit {
         map.put("locationRadius", locationRadius);
         map.put("isLocationReminderEnabled", isLocationReminderEnabled);
         map.put("locationTriggerType", locationTriggerType != null ? locationTriggerType : LocationTriggerType.ENTER.name());
+        // Image field
+        map.put("imagePath", imagePath);
         map.put("createdAt", System.currentTimeMillis());
         map.put("updatedAt", System.currentTimeMillis());
         return map;
@@ -344,6 +367,8 @@ public class Habit {
         habit.locationRadius = getIntOrDefault(map, "locationRadius", 100);
         habit.isLocationReminderEnabled = getBooleanOrDefault(map, "isLocationReminderEnabled", false);
         habit.locationTriggerType = getStringOrDefault(map, "locationTriggerType", LocationTriggerType.ENTER.name());
+        // Image field
+        habit.imagePath = getStringOrDefault(map, "imagePath", null);
         
         return habit;
     }
@@ -417,7 +442,8 @@ public class Habit {
                 objectsEquals(locationName, habit.locationName) &&
                 objectsEquals(latitude, habit.latitude) &&
                 objectsEquals(longitude, habit.longitude) &&
-                objectsEquals(locationTriggerType, habit.locationTriggerType);
+                objectsEquals(locationTriggerType, habit.locationTriggerType) &&
+                objectsEquals(imagePath, habit.imagePath);
     }
 
     private static boolean objectsEquals(Object a, Object b) {

@@ -2,7 +2,14 @@ package com.example.habitor.fragments;
 
 import android.annotation.SuppressLint;
 import android.app.TimePickerDialog;
+import android.content.ContentResolver;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,16 +18,22 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.cardview.widget.CardView;
+import androidx.core.content.FileProvider;
 
 import com.example.habitor.R;
 import com.example.habitor.model.Category;
@@ -37,7 +50,13 @@ import com.google.android.material.button.MaterialButton;
 
 import org.json.JSONArray;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -85,6 +104,22 @@ public class AddEditHabitBottomSheet extends BottomSheetDialogFragment {
     private RadioGroup radioGroupTrigger;
     private CardView cardMapPreview;
     private WebView webViewMapPreview;
+    
+    // Image UI Elements
+    private FrameLayout frameImagePreview;
+    private ImageView ivImagePreview;
+    private ImageButton btnRemoveImage;
+    private MaterialButton btnSelectGallery;
+    private MaterialButton btnTakePhoto;
+    
+    // Image state
+    private String selectedImagePath = null;
+    private Uri cameraImageUri = null;
+    
+    // Activity Result Launchers for image picking
+    private ActivityResultLauncher<Intent> galleryLauncher;
+    private ActivityResultLauncher<Uri> cameraLauncher;
+    private ActivityResultLauncher<String> cameraPermissionLauncher;
 
     // State
     private Priority selectedPriority = Priority.MEDIUM;
@@ -129,6 +164,41 @@ public class AddEditHabitBottomSheet extends BottomSheetDialogFragment {
         if (getArguments() != null) {
             habitId = getArguments().getInt(ARG_HABIT_ID, -1);
         }
+        
+        // Initialize gallery picker launcher
+        galleryLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == android.app.Activity.RESULT_OK && result.getData() != null) {
+                    Uri selectedUri = result.getData().getData();
+                    if (selectedUri != null) {
+                        handleSelectedImage(selectedUri);
+                    }
+                }
+            }
+        );
+        
+        // Initialize camera capture launcher
+        cameraLauncher = registerForActivityResult(
+            new ActivityResultContracts.TakePicture(),
+            success -> {
+                if (success && cameraImageUri != null) {
+                    handleCapturedImage(cameraImageUri);
+                }
+            }
+        );
+        
+        // Initialize camera permission launcher
+        cameraPermissionLauncher = registerForActivityResult(
+            new ActivityResultContracts.RequestPermission(),
+            isGranted -> {
+                if (isGranted) {
+                    launchCamera();
+                } else {
+                    Toast.makeText(getContext(), "Camera permission is required to take photos", Toast.LENGTH_SHORT).show();
+                }
+            }
+        );
     }
 
 
@@ -189,6 +259,13 @@ public class AddEditHabitBottomSheet extends BottomSheetDialogFragment {
         radioGroupTrigger = view.findViewById(R.id.radioGroupTrigger);
         cardMapPreview = view.findViewById(R.id.cardMapPreview);
         webViewMapPreview = view.findViewById(R.id.webViewMapPreview);
+        
+        // Image views
+        frameImagePreview = view.findViewById(R.id.frameImagePreview);
+        ivImagePreview = view.findViewById(R.id.ivImagePreview);
+        btnRemoveImage = view.findViewById(R.id.btnRemoveImage);
+        btnSelectGallery = view.findViewById(R.id.btnSelectGallery);
+        btnTakePhoto = view.findViewById(R.id.btnTakePhoto);
 
         // Set default time display
         updateTimeDisplay();
@@ -243,7 +320,9 @@ public class AddEditHabitBottomSheet extends BottomSheetDialogFragment {
 
         // Repeat pattern radio group
         radioGroupPattern.setOnCheckedChangeListener((group, checkedId) -> {
-            if (checkedId == R.id.radioDaily) {
+            if (checkedId == R.id.radioNever) {
+                updatePatternVisibility(RepeatPattern.NEVER);
+            } else if (checkedId == R.id.radioDaily) {
                 updatePatternVisibility(RepeatPattern.DAILY);
             } else if (checkedId == R.id.radioWeekly) {
                 updatePatternVisibility(RepeatPattern.WEEKLY);
@@ -264,6 +343,11 @@ public class AddEditHabitBottomSheet extends BottomSheetDialogFragment {
         switchLocationReminder.setOnCheckedChangeListener((buttonView, isChecked) -> {
             radioGroupTrigger.setVisibility(isChecked ? View.VISIBLE : View.GONE);
         });
+        
+        // Image buttons
+        btnSelectGallery.setOnClickListener(v -> openGalleryPicker());
+        btnTakePhoto.setOnClickListener(v -> openCamera());
+        btnRemoveImage.setOnClickListener(v -> removeImage());
     }
     
     private void getCurrentLocation() {
@@ -341,6 +425,199 @@ public class AddEditHabitBottomSheet extends BottomSheetDialogFragment {
             layoutLocationReminder.setVisibility(View.GONE);
             cardMapPreview.setVisibility(View.GONE);
         }
+    }
+    
+    // ===========================
+    // IMAGE HANDLING METHODS
+    // ===========================
+    
+    /**
+     * Open gallery to select an image.
+     * Uses ACTION_GET_CONTENT which works without storage permissions on Android 13+.
+     */
+    private void openGalleryPicker() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("image/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        galleryLauncher.launch(Intent.createChooser(intent, "Select Image"));
+    }
+    
+    /**
+     * Open camera to capture a photo.
+     * Checks for camera permission first.
+     */
+    private void openCamera() {
+        if (getContext() == null) return;
+        
+        // Check if camera permission is granted
+        if (androidx.core.content.ContextCompat.checkSelfPermission(
+                requireContext(), android.Manifest.permission.CAMERA) 
+                == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            launchCamera();
+        } else {
+            // Request camera permission
+            cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA);
+        }
+    }
+    
+    /**
+     * Actually launch the camera after permission is granted.
+     */
+    private void launchCamera() {
+        if (getContext() == null) return;
+        
+        try {
+            File photoFile = createImageFile();
+            if (photoFile != null) {
+                cameraImageUri = FileProvider.getUriForFile(
+                    requireContext(),
+                    requireContext().getPackageName() + ".fileprovider",
+                    photoFile
+                );
+                cameraLauncher.launch(cameraImageUri);
+            }
+        } catch (IOException e) {
+            Toast.makeText(getContext(), "Failed to create image file", Toast.LENGTH_SHORT).show();
+        }
+    }
+    
+    /**
+     * Create a temporary file for camera capture.
+     */
+    private File createImageFile() throws IOException {
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        String imageFileName = "HABIT_" + timeStamp + "_";
+        File storageDir = requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        return File.createTempFile(imageFileName, ".jpg", storageDir);
+    }
+    
+    /**
+     * Handle image selected from gallery.
+     */
+    private void handleSelectedImage(Uri sourceUri) {
+        if (getContext() == null) return;
+        
+        try {
+            // Copy image to app internal storage
+            String savedPath = copyImageToInternalStorage(sourceUri);
+            if (savedPath != null) {
+                selectedImagePath = savedPath;
+                displayImagePreview(savedPath);
+            }
+        } catch (IOException e) {
+            Toast.makeText(getContext(), "Failed to save image", Toast.LENGTH_SHORT).show();
+        }
+    }
+    
+    /**
+     * Handle image captured from camera.
+     */
+    private void handleCapturedImage(Uri imageUri) {
+        if (getContext() == null) return;
+        
+        try {
+            // Copy image to app internal storage
+            String savedPath = copyImageToInternalStorage(imageUri);
+            if (savedPath != null) {
+                selectedImagePath = savedPath;
+                displayImagePreview(savedPath);
+            }
+        } catch (IOException e) {
+            Toast.makeText(getContext(), "Failed to save image", Toast.LENGTH_SHORT).show();
+        }
+    }
+    
+    /**
+     * Copy image from source URI to app internal storage.
+     * @param sourceUri Source URI of the image
+     * @return Path to the saved image file, or null if failed
+     */
+    private String copyImageToInternalStorage(Uri sourceUri) throws IOException {
+        if (getContext() == null) return null;
+        
+        ContentResolver contentResolver = requireContext().getContentResolver();
+        InputStream inputStream = contentResolver.openInputStream(sourceUri);
+        if (inputStream == null) return null;
+        
+        // Create unique filename
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        String fileName = "habit_image_" + timeStamp + ".jpg";
+        
+        // Get app internal storage directory for images
+        File imagesDir = new File(requireContext().getFilesDir(), "habit_images");
+        if (!imagesDir.exists()) {
+            imagesDir.mkdirs();
+        }
+        
+        File destFile = new File(imagesDir, fileName);
+        
+        // Decode and compress the image to reduce storage size
+        Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+        inputStream.close();
+        
+        if (bitmap == null) return null;
+        
+        // Scale down if too large (max 1024px on longest side)
+        int maxSize = 1024;
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        
+        if (width > maxSize || height > maxSize) {
+            float scale = Math.min((float) maxSize / width, (float) maxSize / height);
+            int newWidth = Math.round(width * scale);
+            int newHeight = Math.round(height * scale);
+            bitmap = Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true);
+        }
+        
+        // Save compressed image
+        FileOutputStream outputStream = new FileOutputStream(destFile);
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 85, outputStream);
+        outputStream.close();
+        bitmap.recycle();
+        
+        return destFile.getAbsolutePath();
+    }
+    
+    /**
+     * Display image preview from file path.
+     */
+    private void displayImagePreview(String imagePath) {
+        if (imagePath == null || imagePath.isEmpty()) {
+            frameImagePreview.setVisibility(View.GONE);
+            return;
+        }
+        
+        File imageFile = new File(imagePath);
+        if (!imageFile.exists()) {
+            frameImagePreview.setVisibility(View.GONE);
+            return;
+        }
+        
+        // Load and display the image
+        Bitmap bitmap = BitmapFactory.decodeFile(imagePath);
+        if (bitmap != null) {
+            ivImagePreview.setImageBitmap(bitmap);
+            frameImagePreview.setVisibility(View.VISIBLE);
+        } else {
+            frameImagePreview.setVisibility(View.GONE);
+        }
+    }
+    
+    /**
+     * Remove the attached image.
+     */
+    private void removeImage() {
+        // Delete the file if it exists
+        if (selectedImagePath != null) {
+            File imageFile = new File(selectedImagePath);
+            if (imageFile.exists()) {
+                imageFile.delete();
+            }
+        }
+        
+        selectedImagePath = null;
+        ivImagePreview.setImageBitmap(null);
+        frameImagePreview.setVisibility(View.GONE);
     }
     
     @SuppressLint("SetJavaScriptEnabled")
@@ -424,6 +701,9 @@ public class AddEditHabitBottomSheet extends BottomSheetDialogFragment {
         // Set repeat pattern
         RepeatPattern pattern = existingHabit.getRepeatPatternEnum();
         switch (pattern) {
+            case NEVER:
+                radioGroupPattern.check(R.id.radioNever);
+                break;
             case DAILY:
                 radioGroupPattern.check(R.id.radioDaily);
                 break;
@@ -454,6 +734,12 @@ public class AddEditHabitBottomSheet extends BottomSheetDialogFragment {
                     radioGroupTrigger.check(R.id.radioEnter);
                 }
             }
+        }
+        
+        // Load image data
+        if (existingHabit.hasImage()) {
+            selectedImagePath = existingHabit.getImagePath();
+            displayImagePreview(selectedImagePath);
         }
     }
 
@@ -527,6 +813,7 @@ public class AddEditHabitBottomSheet extends BottomSheetDialogFragment {
     }
 
     private void updatePatternVisibility(RepeatPattern pattern) {
+        // Hide day selection and interval for NEVER pattern (Requirements: 3.2)
         layoutWeeklyDays.setVisibility(pattern == RepeatPattern.WEEKLY ? View.VISIBLE : View.GONE);
         layoutCustomInterval.setVisibility(pattern == RepeatPattern.CUSTOM ? View.VISIBLE : View.GONE);
     }
@@ -609,6 +896,16 @@ public class AddEditHabitBottomSheet extends BottomSheetDialogFragment {
         } else {
             habit.setLocationTriggerTypeEnum(LocationTriggerType.ENTER);
         }
+        
+        // Set image field
+        // If editing and image was removed, delete the old file
+        if (existingHabit != null && existingHabit.hasImage() && selectedImagePath == null) {
+            File oldImageFile = new File(existingHabit.getImagePath());
+            if (oldImageFile.exists()) {
+                oldImageFile.delete();
+            }
+        }
+        habit.setImagePath(selectedImagePath);
 
         // Save to repository
         if (existingHabit != null) {
@@ -675,7 +972,9 @@ public class AddEditHabitBottomSheet extends BottomSheetDialogFragment {
 
     private RepeatPattern getSelectedPattern() {
         int checkedId = radioGroupPattern.getCheckedRadioButtonId();
-        if (checkedId == R.id.radioWeekly) {
+        if (checkedId == R.id.radioNever) {
+            return RepeatPattern.NEVER;
+        } else if (checkedId == R.id.radioWeekly) {
             return RepeatPattern.WEEKLY;
         } else if (checkedId == R.id.radioCustom) {
             return RepeatPattern.CUSTOM;
